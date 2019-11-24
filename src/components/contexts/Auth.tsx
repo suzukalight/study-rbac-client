@@ -1,18 +1,22 @@
 import React, { useState, useContext, createContext, useCallback, useMemo } from 'react';
 
-type User = Object | null;
+const visitor: User = {
+  id: '',
+  email: '',
+  role: 'visitor',
+};
 
 interface AuthContextValues {
   authenticated: boolean;
   user: User;
   accessToken: string;
-  login: Function;
+  login: (email: string, password: string, options: Object) => void;
   logout: Function;
 }
 
 const AuthContext = createContext<AuthContextValues>({
   authenticated: false,
-  user: null,
+  user: visitor,
   accessToken: '',
   login: () => {},
   logout: () => {},
@@ -20,16 +24,13 @@ const AuthContext = createContext<AuthContextValues>({
 
 export const AuthProvider: React.FC = ({ children }) => {
   const [authenticated, setAuthenticated] = useState(false);
-  const [user, setUser] = useState<User>(null);
+  const [user, setUser] = useState<User>(visitor);
   const [accessToken, setAccessToken] = useState('');
 
   const login = useCallback(
-    ({ email, password, role }) => {
+    (email, password, { id, role }) => {
       setAuthenticated(true);
-      setUser({
-        email,
-        role,
-      });
+      setUser({ id, email, role });
       setAccessToken('1234567890abcdef1234567890abcdef');
     },
     [setAuthenticated, setUser, setAccessToken],
@@ -37,7 +38,7 @@ export const AuthProvider: React.FC = ({ children }) => {
 
   const logout = useCallback(() => {
     setAuthenticated(false);
-    setUser(null);
+    setUser(visitor);
     setAccessToken('');
   }, [setAuthenticated, setUser, setAccessToken]);
 
@@ -45,6 +46,8 @@ export const AuthProvider: React.FC = ({ children }) => {
     authenticated,
     user,
     accessToken,
+    login,
+    logout,
   ]);
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
